@@ -1,0 +1,26 @@
+# Сборка
+[Bb]in/
+[Oo]bj/
+*.exe
+*.dll
+*.pdb
+*.cache
+*.baml
+*.resources
+*.lref
+*.g.cs
+*.g.i.cs
+
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.vsidx
+
+# NuGet
+packages/
+*.nupkg
+
+# Системное
+Thumbs.db
+.DS_Store

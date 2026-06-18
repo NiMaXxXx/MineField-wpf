@@ -1,0 +1,31 @@
+﻿<Window x:Class="курсач.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:курсач"
+        mc:Ignorable="d"
+        Icon="/heart.ico"
+        Title="Крутейшая игра" Height="720" Width="1280" WindowStyle="ToolWindow"
+        PreviewKeyDown="IsEsc" RenderOptions.BitmapScalingMode="LowQuality" ResizeMode="NoResize">
+    <Grid>
+        <Grid.Background>
+            <ImageBrush ImageSource="/EN3SCqZXkAAVb1Q.jpg" Opacity="1" Stretch="Fill"/>
+        </Grid.Background>
+        <Grid.RowDefinitions>
+            <RowDefinition></RowDefinition>
+            <RowDefinition></RowDefinition>
+            <RowDefinition></RowDefinition>
+            <RowDefinition></RowDefinition>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition></ColumnDefinition>
+            <ColumnDefinition></ColumnDefinition>
+            <ColumnDefinition></ColumnDefinition>
+            <ColumnDefinition></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+        <TextBlock Text="Работа выполнена студентом группы И924Б Антоновым Никитой" FontSize="30" FontFamily="ascii" Foreground="White" Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="5" Background="HotPink" HorizontalAlignment="Center" VerticalAlignment="Bottom">        </TextBlock>
+        <Frame x:Name="FRAME" NavigationUIVisibility="Hidden" Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="5" Grid.RowSpan="5"></Frame>
+    </Grid>
+    
+</Window>
