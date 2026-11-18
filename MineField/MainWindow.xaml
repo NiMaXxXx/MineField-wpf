@@ -5,12 +5,12 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:курсач"
         mc:Ignorable="d"
-        Icon="/heart.ico"
+        Icon="/MineField.ico"
         Title="Крутейшая игра" Height="720" Width="1280" WindowStyle="ToolWindow"
         PreviewKeyDown="IsEsc" RenderOptions.BitmapScalingMode="LowQuality" ResizeMode="NoResize">
     <Grid>
         <Grid.Background>
-            <ImageBrush ImageSource="/EN3SCqZXkAAVb1Q.jpg" Opacity="1" Stretch="Fill"/>
+            <ImageBrush ImageSource="/SplashSakura.png" Opacity="1" Stretch="Fill"/>
         </Grid.Background>
         <Grid.RowDefinitions>
             <RowDefinition></RowDefinition>
@@ -24,7 +24,7 @@
             <ColumnDefinition></ColumnDefinition>
             <ColumnDefinition></ColumnDefinition>
         </Grid.ColumnDefinitions>
-        <TextBlock Text="Работа выполнена студентом группы И924Б Антоновым Никитой" FontSize="30" FontFamily="ascii" Foreground="White" Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="5" Background="HotPink" HorizontalAlignment="Center" VerticalAlignment="Bottom">        </TextBlock>
+        <TextBlock Text="Работа выполнена студентом группы И924Б Антоновым Никитой" FontSize="30" FontFamily="{StaticResource MinecraftFont}" Foreground="White" Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="5" Background="HotPink" HorizontalAlignment="Center" VerticalAlignment="Bottom">        </TextBlock>
         <Frame x:Name="FRAME" NavigationUIVisibility="Hidden" Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="5" Grid.RowSpan="5"></Frame>
     </Grid>
     

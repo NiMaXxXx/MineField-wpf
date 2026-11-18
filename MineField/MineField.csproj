@@ -6,6 +6,7 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{0F352AF7-98D3-49E3-8205-81C909D74F59}</ProjectGuid>
     <OutputType>WinExe</OutputType>
+    <ApplicationIcon>MineField.ico</ApplicationIcon>
     <RootNamespace>курсач</RootNamespace>
     <AssemblyName>курсач</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
@@ -118,6 +119,7 @@
     <Compile Include="ChangeName.xaml.cs">
       <DependentUpon>ChangeName.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Leaderboard.cs" />
     <Compile Include="Game.xaml.cs">
       <DependentUpon>Game.xaml</DependentUpon>
     </Compile>
@@ -190,43 +192,37 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Summer8.png" />
+    <Resource Include="SummerMeadow.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="paper.png" />
+    <Resource Include="RulesParchment.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="heart.ico" />
+    <Resource Include="MineField.ico" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="EN3SCqZXkAAVb1Q.jpg" />
+    <Resource Include="SplashSakura.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="grass.png" />
+    <Resource Include="FieldGrass.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="kitik.png" />
+    <Resource Include="BombSprite.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="bimba.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="bimbasmall.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="kitiksmall.png" />
+    <Resource Include="CalicoSprite.png" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="BackgroundChangeName.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="backleader.png" />
+    <Resource Include="LeaderboardSky.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="leaderboard.png" />
+    <Resource Include="LeaderboardFrame.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="котик.png" />
+    <Resource Include="Minecraft Rus NEW.otf" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

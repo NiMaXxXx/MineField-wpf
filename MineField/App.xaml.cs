@@ -13,5 +13,12 @@ namespace курсач
     /// </summary>
     public partial class App : Application
     {
+        public App()
+        {
+            InitializeComponent();
+            // An explicit base URI makes embedded font lookup independent of the page.
+            Resources["MinecraftFont"] = new System.Windows.Media.FontFamily(
+                new Uri("pack://application:,,,/курсач;component/"), "./#ascii");
+        }
     }
 }

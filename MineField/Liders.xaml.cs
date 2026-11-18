@@ -61,12 +61,15 @@ namespace курсач
         private void LoadTextFromFile()
         {
             
-            string filePath = "Records.txt";
+
 
             try
             {
                 
-                string text = System.IO.File.ReadAllText(filePath);
+                var records = Leaderboard.Load();
+                string text = records.Count == 0 ? "Пока что лидеров нет((" :
+                    string.Join(Environment.NewLine, records.Select((r, i) =>
+                        $"{i + 1}. {r.Name}   Уровень: {r.Level}   Время: {r.Seconds} сек"));
 
                 
                 Leaders.Text = text;
@@ -74,7 +77,8 @@ namespace курсач
             catch (Exception ex)
             {
                 
-                Console.WriteLine($"Ошибка при загрузке файла: {ex.Message}");
+                Leaders.Text = "Не удалось загрузить рекорды.";
+                MessageBox.Show($"Ошибка загрузки рекордов: {ex.Message}");
             }
         }
     }

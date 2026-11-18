@@ -10,7 +10,7 @@
 
     <Grid x:Name="MainWin">
         <Grid.Background>
-            <ImageBrush ImageSource="/Summer8.png"/>
+            <ImageBrush ImageSource="/SummerMeadow.png"/>
         </Grid.Background>
         <Grid.RowDefinitions>
             <RowDefinition></RowDefinition>
@@ -28,8 +28,8 @@
             <ColumnDefinition></ColumnDefinition>
             <ColumnDefinition></ColumnDefinition>
         </Grid.ColumnDefinitions>
-        <TextBlock x:Name="textBlock" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="3" Text="Минное поле" FontSize="72" TextAlignment="Center" FontFamily="ascii" Foreground="White"/>
-        <Button x:Name="Play" Grid.Column="2" Grid.Row="1" Width="220" Height="60" Content="Играть"  FontFamily="ascii" Foreground="White" FontSize="38" Background="Transparent"  MouseEnter="ExitEnter" MouseLeave="ExitLeave" BorderBrush="Transparent" Click="PlayGame">
+        <TextBlock x:Name="textBlock" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="3" Text="Минное поле" FontSize="72" TextAlignment="Center" FontFamily="{StaticResource MinecraftFont}" Foreground="White"/>
+        <Button x:Name="Play" Grid.Column="2" Grid.Row="1" Width="220" Height="60" Content="Играть"  FontFamily="{StaticResource MinecraftFont}" Foreground="White" FontSize="38" Background="Transparent"  MouseEnter="ExitEnter" MouseLeave="ExitLeave" BorderBrush="Transparent" Click="PlayGame">
             <Button.Style>
                 <Style TargetType="Button">
                     <Setter Property="Template">
@@ -44,7 +44,7 @@
                 </Style>
             </Button.Style>
         </Button>
-        <Button x:Name="Rules" Grid.Row="2" Grid.Column="2" Width="220" Height="60" Content="Правила" FontFamily="ascii" Foreground="White" FontSize="38" Background="Transparent"  MouseEnter="ExitEnter" MouseLeave="ExitLeave" BorderBrush="Transparent" Click="Click_Rules">
+        <Button x:Name="Rules" Grid.Row="2" Grid.Column="2" Width="220" Height="60" Content="Правила" FontFamily="{StaticResource MinecraftFont}" Foreground="White" FontSize="38" Background="Transparent"  MouseEnter="ExitEnter" MouseLeave="ExitLeave" BorderBrush="Transparent" Click="Click_Rules">
             <Button.Style>
                 <Style TargetType="Button">
                     <Setter Property="Template">
@@ -59,7 +59,7 @@
                 </Style>
             </Button.Style>
         </Button>
-        <Button x:Name="Lider" Grid.Row="3" Grid.Column="2" Width="220" Height="60" Content="Лидеры" FontFamily="ascii" Foreground="White" FontSize="38" Background="Transparent"  MouseEnter="ExitEnter" MouseLeave="ExitLeave" BorderBrush="Transparent" Click="LoadLeaders">
+        <Button x:Name="Lider" Grid.Row="3" Grid.Column="2" Width="220" Height="60" Content="Лидеры" FontFamily="{StaticResource MinecraftFont}" Foreground="White" FontSize="38" Background="Transparent"  MouseEnter="ExitEnter" MouseLeave="ExitLeave" BorderBrush="Transparent" Click="LoadLeaders">
             <Button.Style>
                 <Style TargetType="Button">
                     <Setter Property="Template">
@@ -74,7 +74,7 @@
                 </Style>
             </Button.Style>
         </Button>
-        <Button x:Name="Player" Grid.Row="4" Grid.Column="2" Width="220" Height="60" Content="Игрок" FontFamily="ascii" Foreground="White" FontSize="38" Background="Transparent"  MouseEnter="ExitEnter" MouseLeave="ExitLeave" BorderBrush="Transparent" Click="LetsChangeName">
+        <Button x:Name="Player" Grid.Row="4" Grid.Column="2" Width="220" Height="60" Content="Игрок" FontFamily="{StaticResource MinecraftFont}" Foreground="White" FontSize="38" Background="Transparent"  MouseEnter="ExitEnter" MouseLeave="ExitLeave" BorderBrush="Transparent" Click="LetsChangeName">
             <Button.Style>
                 <Style TargetType="Button">
                     <Setter Property="Template">
@@ -89,7 +89,7 @@
                 </Style>
             </Button.Style>
         </Button>
-        <Button x:Name="Exit" Grid.Row="5" Grid.Column="2" Width="220" Height="60" Content="Выйти" FontFamily="ascii" Foreground="White" FontSize="38" Background="Transparent"  MouseEnter="ExitEnter" MouseLeave="ExitLeave" BorderBrush="Transparent" Click="Exite">
+        <Button x:Name="Exit" Grid.Row="5" Grid.Column="2" Width="220" Height="60" Content="Выйти" FontFamily="{StaticResource MinecraftFont}" Foreground="White" FontSize="38" Background="Transparent"  MouseEnter="ExitEnter" MouseLeave="ExitLeave" BorderBrush="Transparent" Click="Exite">
             <Button.Style>
                 <Style TargetType="Button">
                     <Setter Property="Template">
@@ -104,7 +104,6 @@
                 </Style>
             </Button.Style>
         </Button>
-        <Frame x:Name="MainFrame" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" Grid.RowSpan="7"></Frame>
         <Canvas x:Name="Main" Height="720" Width="1280" Focusable="True"></Canvas>
     </Grid>
 </Page>

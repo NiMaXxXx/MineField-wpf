@@ -45,7 +45,7 @@ namespace курсач
             {
                 button.FontSize -= 3;
                 button.Background = Brushes.Transparent;
-                button.Foreground = Brushes.White;
+                button.Foreground = new SolidColorBrush(Color.FromRgb(56, 34, 23));
                 button.FocusVisualStyle = null;
             }
         }
@@ -56,7 +56,7 @@ namespace курсач
             {
                 button.FontSize += 3;
                 button.Background = Brushes.Transparent;
-                button.Foreground = Brushes.Gray;
+                button.Foreground = Brushes.SaddleBrown;
                 button.FocusVisualStyle = null;
             }
         }

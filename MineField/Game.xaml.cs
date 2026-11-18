@@ -20,19 +20,56 @@ namespace курсач
     {
 
         private Gamy gameInstance;
+        private Window hostWindow;
 
         public Game()
         {
             InitializeComponent();
             NameOfPlayer.Text = NamePl.Instance.PlayerName;
+            Unloaded += Game_Unloaded;
 
         }
 
         private void SpawnPlayer(object sender, RoutedEventArgs e)
         {
-            gameInstance = new Gamy(gameCanvas, this);
+            if (gameInstance == null)
+            {
+                gameInstance = new Gamy(gameCanvas, this);
+                hostWindow = Window.GetWindow(this);
+                if (hostWindow != null)
+                {
+                    hostWindow.Deactivated += HostWindow_Deactivated;
+                    hostWindow.Activated += HostWindow_Activated;
+                    if (!hostWindow.IsActive) gameInstance.PauseForFocusLoss();
+                }
+            }
             
         }
+        private void HostWindow_Deactivated(object sender, EventArgs e)
+        {
+            gameInstance?.PauseForFocusLoss();
+        }
+
+        private void HostWindow_Activated(object sender, EventArgs e)
+        {
+            // Return keyboard focus without automatically resuming the game.
+            gameCanvas.Focus();
+        }
+
+        private void Game_Unloaded(object sender, RoutedEventArgs e)
+        {
+            if (hostWindow != null)
+            {
+                hostWindow.Deactivated -= HostWindow_Deactivated;
+                hostWindow.Activated -= HostWindow_Activated;
+                hostWindow = null;
+            }
+            if (gameInstance == null) return;
+            gameInstance.Dispose();
+            gameInstance = null;
+            gameCanvas.Children.Clear();
+        }
+
         public void ExitToMenu()
         {
             NavigationService.GoBack();
@@ -40,18 +77,21 @@ namespace курсач
         
     }
 
-    public class Gamy
+    public class Gamy : IDisposable
     {
         private List<Bomb> bombs;
         private Player player;
-        private DispatcherTimer Gametimer = new DispatcherTimer(), invisibleTimer = new DispatcherTimer();
+        private readonly DispatcherTimer invisibleTimer = new DispatcherTimer();
         private Canvas canv;
+        private TimeSpan? previousRenderTime;
+        private const double MaxFrameSeconds = 0.05;
         private TextBlock timer, levelpl, textBlock = new TextBlock(), death = new TextBlock();
-        private int previousLevel = 1;
+        private const int MemorizationSeconds = 3;
+        private int countdownRemaining;
+        private readonly TextBlock countdown = new TextBlock();
 
         private Button resumeButton, exitButton;
         private string playername = NamePl.Instance.PlayerName;
-        public event KeyEventHandler KeyDown;
 
 
         DispatcherTimer defaulttimer = new DispatcherTimer();
@@ -64,14 +104,14 @@ namespace курсач
             
             textBlock.FontSize = 28;
             textBlock.Foreground = new SolidColorBrush(Colors.White);
-            textBlock.FontFamily = new FontFamily("ascii");
+            textBlock.FontFamily = (FontFamily)Application.Current.FindResource("MinecraftFont");
             textBlock.Text = "Пауза";
             textBlock.Foreground = new SolidColorBrush((Colors.Gray));
             textBlock.Visibility = Visibility.Collapsed;
 
             death.FontSize = 28;
             death.Foreground = new SolidColorBrush(Colors.White);
-            death.FontFamily = new FontFamily("ascii");
+            death.FontFamily = (FontFamily)Application.Current.FindResource("MinecraftFont");
             death.Text = "Вы умерли!";
             death.Foreground = new SolidColorBrush((Colors.Gray));
             death.Visibility = Visibility.Collapsed;
@@ -82,9 +122,8 @@ namespace курсач
             defaulttimer.Tick += Timer_Tick;
             defaulttimer.Start();
 
-            invisibleTimer.Interval = TimeSpan.FromSeconds(3);
+            invisibleTimer.Interval = TimeSpan.FromSeconds(1);
             invisibleTimer.Tick += InvisibleTimer_Tick;
-            invisibleTimer.Start();
 
 
             this.canv = gameCanvas;
@@ -95,30 +134,43 @@ namespace курсач
 
             Canvas.SetLeft(textBlock, 610);
             Canvas.SetTop(textBlock, 245);
+            Panel.SetZIndex(textBlock, 100);
             canv.Children.Add(textBlock);
 
             Canvas.SetLeft(death, 600);
             Canvas.SetTop(death, 245);
+            Panel.SetZIndex(death, 100);
             canv.Children.Add(death);
+
+            countdown.FontFamily = (FontFamily)Application.Current.FindResource("MinecraftFont");
+            countdown.FontSize = 26;
+            countdown.Foreground = Brushes.White;
+            countdown.Background = new SolidColorBrush(Color.FromArgb(180, 0, 0, 0));
+            countdown.TextAlignment = TextAlignment.Center;
+            countdown.Padding = new Thickness(12, 6, 12, 6);
+            countdown.Width = 500;
+            Canvas.SetLeft(countdown, (canv.Width - countdown.Width) / 2);
+            Canvas.SetTop(countdown, 80);
+            Panel.SetZIndex(countdown, 100);
+            canv.Children.Add(countdown);
 
 
 
             player = new Player(608, 615, canv);
             bombs = new List<Bomb>();
             SpawnBombs();
-            Gametimer.Interval = TimeSpan.FromMilliseconds(18);
+            BeginCountdown();
             CompositionTarget.Rendering += Gametick;
-            Gametimer.Start();
 
             timer = new TextBlock();
             timer.FontSize = 18;
             timer.Foreground = new SolidColorBrush(Colors.White);
-            timer.FontFamily = new FontFamily("ascii");
+            timer.FontFamily = (FontFamily)Application.Current.FindResource("MinecraftFont");
             timer.Text = "Время: 0 сек";
             levelpl = new TextBlock();
             levelpl.FontSize = 18;
             levelpl.Foreground = new SolidColorBrush(Colors.White);
-            levelpl.FontFamily = new FontFamily("ascii");
+            levelpl.FontFamily = (FontFamily)Application.Current.FindResource("MinecraftFont");
             levelpl.Text = "Уровень игрока: 1";
 
             Canvas.SetLeft(timer, 5);
@@ -126,7 +178,9 @@ namespace курсач
 
             Canvas.SetLeft(levelpl, 5);
             Canvas.SetTop(levelpl, 25);
+            Panel.SetZIndex(levelpl, 100);
             canv.Children.Add(levelpl);
+            Panel.SetZIndex(timer, 100);
             canv.Children.Add(timer);
 
             resumeButton = new Button();
@@ -135,10 +189,11 @@ namespace курсач
             Canvas.SetLeft(resumeButton, 350);
             Canvas.SetTop(resumeButton, 300);
             resumeButton.Background = new SolidColorBrush(Colors.Transparent);
-            resumeButton.FontFamily = new FontFamily("ascii");
+            resumeButton.FontFamily = (FontFamily)Application.Current.FindResource("MinecraftFont");
             resumeButton.FontSize = 30;
             resumeButton.Foreground = new SolidColorBrush(Colors.Gray);
             resumeButton.BorderThickness = new Thickness(0, 0, 0, 0);
+            Panel.SetZIndex(resumeButton, 100);
             canv.Children.Add(resumeButton);
             resumeButton.Visibility = Visibility.Hidden;
 
@@ -148,26 +203,41 @@ namespace курсач
             Canvas.SetLeft(exitButton, 750);
             Canvas.SetTop(exitButton, 300);
             exitButton.Background = new SolidColorBrush(Colors.Transparent);
-            exitButton.FontFamily = new FontFamily("ascii");
+            exitButton.FontFamily = (FontFamily)Application.Current.FindResource("MinecraftFont");
             exitButton.FontSize = 30;
             exitButton.Foreground = new SolidColorBrush(Colors.Gray);
             exitButton.BorderThickness = new Thickness(0, 0, 0, 0);
+            Panel.SetZIndex(exitButton, 100);
             canv.Children.Add(exitButton);
             exitButton.Visibility = Visibility.Hidden;
 
 
+        }
 
-            if (!player.Playeralive())
-            {
-                defaulttimer.Stop();
-            }
+        public void Dispose()
+        {
+            CompositionTarget.Rendering -= Gametick;
+            invisibleTimer.Stop();
+            defaulttimer.Stop();
+            invisibleTimer.Tick -= InvisibleTimer_Tick;
+            defaulttimer.Tick -= Timer_Tick;
+            canv.KeyDown -= Canvas_KeyDown;
+            player.DetachInput();
+            resumeButton.Click -= ResumeButton_Click;
+            exitButton.Click -= ExitButton_Click;
+        }
 
+        public void PauseForFocusLoss()
+        {
+            player.ResetInput();
+            previousRenderTime = null;
+            if (player.IsAlive && !isPaused) PauseGame();
         }
 
         private void Canvas_KeyDown(object sender, KeyEventArgs e)
         {
             
-            if (e.Key == Key.Escape)
+            if (e.Key == Key.Escape && player.IsAlive)
             {
                 
                 
@@ -188,12 +258,13 @@ namespace курсач
             
             
             isPaused = true;
+            player.ResetInput();
 
             
-            Gametimer.Stop();
             invisibleTimer.Stop();
             defaulttimer.Stop();
 
+            countdown.Visibility = Visibility.Collapsed;
             textBlock.Visibility = Visibility.Visible;
             resumeButton.Visibility = Visibility.Visible;
             exitButton.Visibility = Visibility.Visible;
@@ -210,11 +281,17 @@ namespace курсач
             player.ChangeLive();
             IsSaved = false;
             
-            Gametimer.Start();
-            invisibleTimer.Start();
+            BeginCountdown();
+            defaulttimer.Stop();
             defaulttimer.Start();
             elapsedTime = 0;
             player.SetLevelZero();
+            player.pobeda = false;
+            player.ResetInput();
+            canv.Focus();
+            timer.Text = "Время: 0 сек";
+            levelpl.Text = "Уровень игрока: 1";
+            death.Visibility = Visibility.Collapsed;
 
             textBlock.Visibility = Visibility.Collapsed;
             resumeButton.Visibility = Visibility.Collapsed;
@@ -222,9 +299,15 @@ namespace курсач
         }
         private void ResumeGame()
         {
+            player.ResetInput();
+            previousRenderTime = null;
+            canv.Focus();
             isPaused = false;
-            Gametimer.Start();
-            invisibleTimer.Start();
+            if (!player.CanMove)
+            {
+                countdown.Visibility = Visibility.Visible;
+                invisibleTimer.Start();
+            }
             defaulttimer.Start();
             resumeButton.Visibility = Visibility.Collapsed;
             exitButton.Visibility = Visibility.Collapsed;
@@ -240,14 +323,32 @@ namespace курсач
 
         private void ExitButton_Click(object sender, RoutedEventArgs e)
         {
-            if (!IsSaved) { SavePlayerInfo("Records.txt"); }
+            if (!IsSaved) { SavePlayerInfo(); }
             gamepage.ExitToMenu();
         }
 
 
 
+        private void BeginCountdown()
+        {
+            player.CanMove = false;
+            countdownRemaining = MemorizationSeconds;
+            countdown.Text = $"Запомни мины: {countdownRemaining}";
+            countdown.Visibility = Visibility.Visible;
+            invisibleTimer.Stop();
+            invisibleTimer.Start();
+        }
+
         private void InvisibleTimer_Tick(object sender, EventArgs e)
         {
+            if (isPaused || !player.IsAlive) return;
+            countdownRemaining--;
+            if (countdownRemaining > 0)
+            {
+                countdown.Text = $"Запомни мины: {countdownRemaining}";
+                return;
+            }
+            countdown.Visibility = Visibility.Collapsed;
             
             
             foreach (Bomb bomb in bombs)
@@ -256,25 +357,37 @@ namespace курсач
             }
 
             player.CanMove = true;
+            invisibleTimer.Stop();
             
         }
 
         private void Gametick(object sender, EventArgs e)
         {
+            var rendering = (RenderingEventArgs)e;
+            TimeSpan currentTime = rendering.RenderingTime;
+            double deltaSeconds = previousRenderTime.HasValue
+                ? (currentTime - previousRenderTime.Value).TotalSeconds
+                : 0;
+            // Update even during pause so paused time never becomes movement.
+            previousRenderTime = currentTime;
+            if (deltaSeconds <= 0) return;
+            // Avoid a large jump after a stalled frame.
+            deltaSeconds = Math.Min(deltaSeconds, MaxFrameSeconds);
+
             if (!isPaused)
             {
-                player.Gametick(sender, e);
+                player.Move(deltaSeconds);
                 player.CheckWin();
                 
                 foreach (Bomb bomb in bombs)
                 {
                     player.CheckCollision(bomb);
-                    if (!player.GetAlive())
+                    if (!player.IsAlive)
                     {
                         bomb.MakeVisible();
                         if (!IsSaved)
                         {
-                            SavePlayerInfo("Records.txt");
+                            SavePlayerInfo();
                             IsSaved = true;
                         }
                         death.Visibility = Visibility.Visible;
@@ -298,31 +411,33 @@ namespace курсач
             bombs.Clear();
             
         }
+        private const double MinimumBombCenterDistance = 120;
+        private const int MaxSpawnAttemptsPerBomb = 1000;
+        private readonly Random random = new Random();
+
         public void SpawnBombs()
         {
-            Random random = new Random();
-
-            int numberOfBombs = random.Next(20, 30); 
+            int numberOfBombs = random.Next(20, 30);
+            double maxX = canv.ActualWidth - Bomb.SpriteSize;
+            double maxY = canv.ActualHeight - Bomb.SpriteSize;
+            if (maxX < 0 || maxY < 0) return;
 
             for (int i = 0; i < numberOfBombs; i++)
             {
-                double x, y;
-                do
+                for (int attempt = 0; attempt < MaxSpawnAttemptsPerBomb; attempt++)
                 {
-                    x = random.Next(0, (int)(canv.ActualWidth - 40)); 
-                    y = random.Next(0, (int)(canv.ActualHeight - 40)); 
-                    x += i * 20;
-                    y += i * 20;
-                } while (IsTooCloseToPlayer(x, y));
-                
+                    double x = random.NextDouble() * maxX;
+                    double y = random.NextDouble() * maxY;
+                    if (IsTooCloseToPlayer(x, y) || bombs.Any(bomb =>
+                        (bomb.X - x) * (bomb.X - x) + (bomb.Y - y) * (bomb.Y - y)
+                        < MinimumBombCenterDistance * MinimumBombCenterDistance))
+                        continue;
 
-                
-
-                Bomb bomb = new Bomb(x, y, canv);
-                bombs.Add(bomb);
+                    bombs.Add(new Bomb(x, y, canv));
+                    break;
+                }
             }
         }
-
         private void RestartGame()
         {
             
@@ -359,7 +474,7 @@ namespace курсач
         {
 
             
-            if (player.Playeralive())
+            if (player.IsAlive)
             {
                 elapsedTime++;
                 timer.Text = "Время: " + elapsedTime + " сек";
@@ -372,8 +487,9 @@ namespace курсач
                     Canvas.SetTop(player.playerRectangle, 615);
                     
                     RestartGame();
+                    player.pobeda = false;
+                    BeginCountdown();
 
-                    previousLevel = getlevel();
                     player.CanMove = false;
 
                 }
@@ -390,35 +506,15 @@ namespace курсач
             return distance < 150;
         }
 
-        private void SavePlayerInfo(string filename)
+        private void SavePlayerInfo()
         {
             try
             {
-                string InfoAboutPlayer = $"{playername}   {player.GetLevelPL()}   {elapsedTime} сек ";
-
-                List<string> existingLines = new List<string>();
-
-                
-                if (File.Exists(filename))
-                {
-                    existingLines = File.ReadAllLines(filename).ToList();
-                }
-
-                
-                if (existingLines.Count >= 10)
-                {
-                    existingLines.RemoveAt(existingLines.Count - 1);
-                }
-
-                
-                existingLines.Insert(0, InfoAboutPlayer);
-
-                
-                File.WriteAllLines(filename, existingLines);
+                Leaderboard.Save(playername, player.GetLevelPL(), elapsedTime);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Не удалось записать файл по причине {ex.Message}");
+                MessageBox.Show($"Не удалось сохранить рекорд: {ex.Message}");
             }
         }
     }
@@ -427,16 +523,11 @@ namespace курсач
     {
         public double X { get; set; }
         public double Y { get; set; }
-        public Image Image { get; protected set; }
 
-        public Object(double x, double y, Canvas canvas)
+        public Object(double x, double y)
         {
             X = x;
             Y = y;
-
-            Image = new Image();
-            Canvas.SetLeft(Image, x);
-            Canvas.SetTop(Image, y);
         }
     }
 
@@ -444,23 +535,23 @@ namespace курсач
     public class Player : Object
     {
         public Canvas playercan;
-        protected bool isAlive = true, isExist = false;
+        private bool isAlive = true;
         public bool CanMove = false;
         public Rectangle playerRectangle;
         private bool UpKeyPR, DownKeyPr, LeftKeyPr, RightKeyPr;
         public bool pobeda;
-        private float Speed = 2;
+        // WPF logical pixels per second, independent of the rendering frame rate.
+        private const double Speed = 200;
         private int playerlevel = 1;
-        private bool isPaused = false;
 
-        public Player(double x, double y, Canvas can) : base(x, y, can)
+        public Player(double x, double y, Canvas can) : base(x, y)
         {
             this.playercan = can;
             
             playerRectangle = new Rectangle();
             playerRectangle.Width = 64;
             playerRectangle.Height = 64;
-            playerRectangle.Fill = new ImageBrush(new BitmapImage(new Uri("C:/Users/яна солях/source/repos/курсач/курсач/kitiksmall.png")));
+            playerRectangle.Fill = new ImageBrush(new BitmapImage(new Uri("pack://application:,,,/CalicoSprite.png")));
 
             
             Canvas.SetLeft(playerRectangle, x);
@@ -477,6 +568,18 @@ namespace курсач
             playercan.Focus();
         }
 
+        public void ResetInput()
+        {
+            UpKeyPR = DownKeyPr = LeftKeyPr = RightKeyPr = false;
+        }
+
+        public void DetachInput()
+        {
+            playercan.KeyDown -= PlayerCanvas_KeyDown;
+            playercan.KeyUp -= Playercan_KeyUp;
+            ResetInput();
+        }
+
         public void IncreaseLevel(int num)
         {
             playerlevel = playerlevel + num;
@@ -486,10 +589,7 @@ namespace курсач
         {
             return playerlevel;
         }
-        public bool Playeralive()
-        {
-            return isAlive;
-        }
+        public bool IsAlive => isAlive;
         public void ChangeLive()
         {
             isAlive = true;
@@ -534,52 +634,40 @@ namespace курсач
             {
                 DownKeyPr = true;
             }
-            if (e.Key == Key.Escape)
-            {
-                isPaused = !isPaused;
-            }
         }
-        public void Gametick(object sender, object e)
+        public void Move(double deltaSeconds)
         {
-            if (isAlive && CanMove)
-            {
-                
-                if (UpKeyPR && Y > 0)
-                {
-                    Y -= Speed;
-                }
+            if (!isAlive || !CanMove || deltaSeconds <= 0) return;
 
-                
-                if (DownKeyPr && Y < playercan.ActualHeight - playerRectangle.Height - 40)
-                {
-                    Y += Speed;
-                }
+            double directionX = (RightKeyPr ? 1 : 0) - (LeftKeyPr ? 1 : 0);
+            double directionY = (DownKeyPr ? 1 : 0) - (UpKeyPR ? 1 : 0);
+            double length = Math.Sqrt(directionX * directionX + directionY * directionY);
+            if (length == 0) return;
 
-                
-                if (LeftKeyPr && X > 0)
-                {
-                    X -= Speed;
-                }
+            // Normalize: diagonal movement must cover the same distance.
+            double distance = Speed * deltaSeconds;
+            X += directionX / length * distance;
+            Y += directionY / length * distance;
 
-                
-                if (RightKeyPr && X < playercan.ActualWidth - playerRectangle.Width - 8)
-                {
-                    X += Speed;
-                }
+            // Clamp after moving: a variable step can overshoot the edge.
+            double maxX = Math.Max(0, playercan.ActualWidth - playerRectangle.Width - 8);
+            double maxY = Math.Max(0, playercan.ActualHeight - playerRectangle.Height - 40);
+            X = Math.Max(0, Math.Min(X, maxX));
+            Y = Math.Max(0, Math.Min(Y, maxY));
 
-                
-                Canvas.SetLeft(playerRectangle, X);
-                Canvas.SetTop(playerRectangle, Y);
-                
-                
-            }
+            Canvas.SetLeft(playerRectangle, X);
+            Canvas.SetTop(playerRectangle, Y);
         }
+        // Smaller circular hitboxes allow harmless contact with sprite edges.
+        private const double CollisionRadius = 16;
+
         public void CheckCollision(Bomb bomb)
         {
-            Rect playerRect = new Rect(X, Y, playerRectangle.Width, playerRectangle.Height);
-            Rect bombRect = new Rect(bomb.X, bomb.Y, bomb.bombRectangle.Width - 16, bomb.bombRectangle.Height - 16);
+            double dx = X + playerRectangle.Width / 2 - (bomb.X + bomb.bombRectangle.Width / 2);
+            double dy = Y + playerRectangle.Height / 2 - (bomb.Y + bomb.bombRectangle.Height / 2);
+            double combinedRadius = CollisionRadius + Bomb.CollisionRadius;
 
-            if (playerRect.IntersectsWith(bombRect))
+            if (dx * dx + dy * dy < combinedRadius * combinedRadius)
             {
                 isAlive = false;
                 bomb.MakeVisible();
@@ -599,11 +687,6 @@ namespace курсач
                 pobeda = false;
             }
         }
-        public bool GetAlive()
-        {
-            if (isAlive) return true;
-            else return false;
-        }
 
         internal void SetLevelZero()
         {
@@ -613,16 +696,18 @@ namespace курсач
 
     public class Bomb : Object
     {
+        public const double SpriteSize = 40;
+        public const double CollisionRadius = 10;
         Canvas bombcan;
         public Rectangle bombRectangle;
-        public Bomb(double x, double y, Canvas can) : base(x, y, can)
+        public Bomb(double x, double y, Canvas can) : base(x, y)
         {
             this.bombcan = can;
             
             bombRectangle = new Rectangle();
-            bombRectangle.Width = 40; 
-            bombRectangle.Height = 40;
-            bombRectangle.Fill = new ImageBrush(new BitmapImage(new Uri("C:/Users/яна солях/source/repos/курсач/курсач/bimbasmall.png")));
+            bombRectangle.Width = SpriteSize;
+            bombRectangle.Height = SpriteSize;
+            bombRectangle.Fill = new ImageBrush(new BitmapImage(new Uri("pack://application:,,,/BombSprite.png")));
 
             
             Canvas.SetLeft(bombRectangle, x);

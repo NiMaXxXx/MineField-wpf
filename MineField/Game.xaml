@@ -10,7 +10,7 @@
 
     <Grid>
         <Grid.Background>
-            <ImageBrush ImageSource="/grass.png"/>
+            <ImageBrush ImageSource="/FieldGrass.png"/>
         </Grid.Background>
         <Grid.ColumnDefinitions>
             <ColumnDefinition></ColumnDefinition>
@@ -42,7 +42,6 @@
         </Grid.RowDefinitions>
         <Canvas Name="gameCanvas" Width="1280" Height="720" Focusable="True" >
         </Canvas>
-        <TextBlock x:Name="NameOfPlayer" Text="Имя игрока" FontSize="18" FontFamily="ascii" Foreground="White" Grid.Row="1" Grid.ColumnSpan="2" Loaded="SpawnPlayer" Margin="5 0 0 0"/>
-        <Rectangle x:Name="FrameTamer" Width="1280" Height="80"/>
+        <TextBlock x:Name="NameOfPlayer" Text="Имя игрока" FontSize="18" FontFamily="{StaticResource MinecraftFont}" Foreground="White" Grid.Row="1" Grid.ColumnSpan="2" Loaded="SpawnPlayer" Margin="5 0 0 0"/>
     </Grid>
 </Page>
